@@ -1,5 +1,11 @@
 *.py[cod]
 
+# Vim
+*.swp
+
+# cached page
+*.htm
+
 # C extensions
 *.so
 
