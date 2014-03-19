@@ -1,7 +1,7 @@
 from urllib2 import urlopen
 import json
 import leveldb
-from threading import Lock
+from threading import Lock, Thread
 from Queue import Queue
 
 
@@ -50,10 +50,15 @@ for i in range(1, 1000000):
 
 
 total_found = 0
+stopped = False
 
 def crawl():
     global total_found
+    global stopped
     while not q.empty():
+        if stopped:
+            break
+
         i = q.get()
         if is_exist(i):
             #print 'existed',
@@ -80,7 +85,20 @@ def crawl():
 
 
 def main():
-    crawl()
+    NUM_OF_THREAD = 5
+    threads = []
+    for i in range(NUM_OF_THREAD):
+        thread = Thread(target = crawl)
+        thread.start()
+        threads.append(thread)
+
+    global stopped
+    raw_input()
+    stopped = True
+
+    for t in threads:
+        t.join()
+
 
 if __name__ == '__main__':
     main()
