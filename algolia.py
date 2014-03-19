@@ -41,14 +41,15 @@ def is_error(item_id):
 
 
 total_found = 0
-for i in range(1, 100):
-    print 'item', i,
+for i in range(1, 1000000):
     if is_exist(i):
-        print 'existed',
+        #print 'existed',
         total_found += 1
     elif IGNORE_error and is_error(i):
-        print 'was error',
+        #print 'was error',
+	pass
     else:
+	print 'item', i,
         url = URL_PATTERN % i
         try:
             raw_json = urlopen(url).read()
@@ -61,5 +62,5 @@ for i in range(1, 100):
             error_items.Put(str(i), str(e))
             print str(e),
 
-    print ''
+	print ''
 
