@@ -45,7 +45,9 @@ def is_error(item_id):
 
 
 q = Queue()
-for i in range(1, 1000000):
+START=1000000
+COUNT=100000
+for i in range(START, START + COUNT):
     q.put(i)
 
 
