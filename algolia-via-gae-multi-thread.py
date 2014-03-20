@@ -48,7 +48,7 @@ def is_error(item_id):
 
 q = Queue()
 START=1000000
-COUNT=500000
+COUNT=2000000
 for i in range(START, START + COUNT):
     q.put(i)
 
@@ -89,7 +89,7 @@ def crawl():
 
 
 def main():
-    NUM_OF_THREAD = 5
+    NUM_OF_THREAD = 2
     threads = []
     for i in range(NUM_OF_THREAD):
         thread = Thread(target = crawl)
@@ -97,8 +97,8 @@ def main():
         threads.append(thread)
 
     global stopped
-    raw_input()
-    stopped = True
+    #raw_input()
+    #stopped = True
 
     for t in threads:
         t.join()
