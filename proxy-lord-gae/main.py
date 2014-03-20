@@ -32,7 +32,7 @@ class StartPage(webapp.RequestHandler):
             except urllib2.HTTPError as e:
                 self.response.set_status(e.code, e.reason)
             except Exception as e:
-                Response.http_status_message(500)
+                self.response.set_status(500, str(e))
 
 
 application = webapp.WSGIApplication([('/.*', StartPage)], debug=True)
