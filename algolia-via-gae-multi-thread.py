@@ -6,6 +6,8 @@ from Queue import Queue
 
 
 URL_PATTERN = 'http://proxy-lord.appspot.com/?item=%d'
+URL_PATTERN = 'http://hnps-ips.appspot.com/?item=%d'
+
 
 db = leveldb.LevelDB('./algolia')
 error_items = leveldb.LevelDB('./error_items')
@@ -46,7 +48,7 @@ def is_error(item_id):
 
 q = Queue()
 START=1000000
-COUNT=100000
+COUNT=500000
 for i in range(START, START + COUNT):
     q.put(i)
 
