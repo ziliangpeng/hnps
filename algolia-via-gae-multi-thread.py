@@ -1,4 +1,4 @@
-from urllib2 import urlopen
+from urllib2 import urlopen, HTTPError
 import json
 import leveldb
 from threading import Lock, Thread
@@ -59,6 +59,14 @@ for i in range(START, START + COUNT):
 total_found = 0
 stopped = False
 
+
+def log_error(key, value):
+    error_items.Put(str(key), str(value))
+    with lock:
+        print 'item', key,
+        print str(value)
+
+
 def crawl():
     global total_found
     global stopped
@@ -86,11 +94,11 @@ def crawl():
                     print '%3d' % item_cnt, 'found',
                     total_found += item_cnt
                     print 'total found:', total_found
+            except HTTPError as e
+                if e.code != 403:
+                    log_error(i, e)
             except Exception as e:
-                error_items.Put(str(i), str(e))
-                with lock:
-                    print 'item', i,
-                    print str(e)
+                log_error(i, e)
 
 
 def main():
