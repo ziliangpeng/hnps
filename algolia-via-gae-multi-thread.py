@@ -49,9 +49,10 @@ def is_error(item_id):
         return False
 
 
+import sys
 q = Queue()
-START=3000000 - 10
-COUNT=2000000
+START = sys.argv[1] #3000000 - 10
+COUNT = sys.argv[2] #2000000
 for i in range(START, START + COUNT):
     q.put(i)
 
