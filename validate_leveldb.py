@@ -10,15 +10,21 @@ def complete_thread():
 
     for k, v in db.RangeIter():
         json_obj = json.loads(v)
-        parent_id = json['parent_id']
+        if 'parent_id' in json_obj:
+            parent_id = json_obj['parent_id']
+        else:
+            parent_id = None
+
         if parent_id != None:
             print k, parent_id,
             try:
                 db.Get(str(parent_id))
                 parent_exist = True
-            except leveldb.KeyError:
+            except KeyError:
                 parent_exist = False
             print parent_exist
+            if not parent_exist:
+                print 'fucked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
 
         
-
+complete_thread()
