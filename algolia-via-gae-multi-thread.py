@@ -51,8 +51,8 @@ def is_error(item_id):
 
 import sys
 q = Queue()
-START = sys.argv[1] #3000000 - 10
-COUNT = sys.argv[2] #2000000
+START = int(sys.argv[1]) #3000000 - 10
+COUNT = int(sys.argv[2]) #2000000
 for i in range(START, START + COUNT):
     q.put(i)
 
@@ -95,7 +95,7 @@ def crawl():
                     print '%3d' % item_cnt, 'found',
                     total_found += item_cnt
                     print 'total found:', total_found
-            except HTTPError as e
+            except HTTPError as e:
                 if e.code != 403:
                     log_error(i, e)
             except Exception as e:
