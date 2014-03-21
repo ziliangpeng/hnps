@@ -13,10 +13,13 @@ def main():
     def retrieve_id(d):
         return d['id']
 
+    def transform_obj(obj):
+        obj['children'] = map(retrieve_id, obj['children'])
+
     def reduce_item(obj):
         if 'children' in obj and len(obj['children']) > 0:
             if type(obj['children'][0]) not in (int, long):
-                obj['children'] = map(retrieve_id, obj['children'])
+                transform_obj(obj)
             
         return obj
 
