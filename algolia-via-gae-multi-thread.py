@@ -3,10 +3,13 @@ import json
 import leveldb
 from threading import Lock, Thread
 from Queue import Queue
+import random
 
 
-URL_PATTERN = 'http://proxy-lord.appspot.com/?item=%d'
-URL_PATTERN = 'http://hnps-ips.appspot.com/?item=%d'
+URL_PATTERN1 = 'http://proxy-lord.appspot.com/?item=%d'
+URL_PATTERN2 = 'http://hnps-ips.appspot.com/?item=%d'
+
+URLS = [URL_PATTERN1, URL_PATTERN2]
 
 
 db = leveldb.LevelDB('./algolia')
@@ -47,7 +50,7 @@ def is_error(item_id):
 
 
 q = Queue()
-START=1000000
+START=3000000 - 10
 COUNT=2000000
 for i in range(START, START + COUNT):
     q.put(i)
@@ -59,6 +62,7 @@ stopped = False
 def crawl():
     global total_found
     global stopped
+    global URLS
     while not q.empty():
         if stopped:
             break
@@ -71,6 +75,7 @@ def crawl():
             #print 'was error',
             pass
         else:
+            URL_PATTERN = random.choice(URLS)
             url = URL_PATTERN % i
             try:
                 raw_json = urlopen(url).read()
@@ -89,7 +94,7 @@ def crawl():
 
 
 def main():
-    NUM_OF_THREAD = 2
+    NUM_OF_THREAD = 4
     threads = []
     for i in range(NUM_OF_THREAD):
         thread = Thread(target = crawl)

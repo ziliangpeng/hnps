@@ -41,7 +41,7 @@ def is_error(item_id):
 
 
 total_found = 0
-for i in range(1, 3000000):
+for i in range(3000000, 7000000):
     if is_exist(i):
         #print 'existed',
         total_found += 1
