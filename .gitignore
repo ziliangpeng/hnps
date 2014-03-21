@@ -9,6 +9,13 @@
 # C extensions
 *.so
 
+# nohup
+nohup.out
+
+# leveldb files
+algolia/*
+error_items/*
+
 # Packages
 *.egg
 *.egg-info
