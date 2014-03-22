@@ -32,11 +32,11 @@ def main():
             print cnt, ' * 10000 items', byte_count
             limit = 0
         limit += 1
-        #v = json.loads(v)
-        #v = reduce_item(v)
-        #v = json.dumps(v)
+        v = json.loads(v)
+        v = reduce_item(v)
+        v = json.dumps(v)
         byte_count += len(v)
-        #db2.Put(k, v)
+        db2.Put(k, v)
 
 
 if __name__ == '__main__':

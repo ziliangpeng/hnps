@@ -69,8 +69,9 @@ total_found = 0
 stopped = False
 
 
-def log_error(key, value):
-    error_items.Put(str(key), str(value))
+def log_error(key, value, save_to_db):
+    if save_to_db:
+        error_items.Put(str(key), str(value))
     with lock:
         print 'item', key,
         print str(value)
@@ -104,14 +105,18 @@ def crawl():
                     total_found += item_cnt
                     print 'total found:', total_found
             except HTTPError as e:
-                if e.code != 403:
-                    log_error(i, e)
+                if e.code / 100 == 5: # 5xx Server Error
+                    log_error(i, e, False)
+                elif e.code == 403: # 403 Permission Denied - banned
+                    log_error(i, e, False)
+                else:
+                    log_error(i, e, True)
             except Exception as e:
-                log_error(i, e)
+                log_error(i, e, False)
 
 
 def main():
-    NUM_OF_THREAD = 4
+    NUM_OF_THREAD = 9
     threads = []
     for i in range(NUM_OF_THREAD):
         thread = Thread(target = crawl)
