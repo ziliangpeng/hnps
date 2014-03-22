@@ -35,7 +35,7 @@ def parse(json_object):
     def transform_obj(obj):
         obj['children'] = map(retrieve_id, obj['children'])
 
-    if len(obj['children']) > 0 and type(obj['children'][0]) not in (int, long):
+    if len(json_object['children']) > 0 and type(json_object['children'][0]) not in (int, long):
         transform_obj(json_object)
     save(item_id, json_object)
     return obj_cnt
