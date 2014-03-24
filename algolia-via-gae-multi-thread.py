@@ -2,7 +2,7 @@ from urllib2 import urlopen, HTTPError
 import json
 import leveldb
 from threading import Lock, Thread
-from Queue import Queue
+from Queue import Queue, Empty
 import random
 
 
@@ -14,12 +14,18 @@ URLS = [URL_PATTERN1, URL_PATTERN2]
 
 db = leveldb.LevelDB('./algolia')
 error_items = leveldb.LevelDB('./error_items')
+poll_db = leveldb.LevelDB('./polls')
+
 IGNORE_error = True
 lock = Lock()
 
 
 def save(item_id, json_object):
     db.Put(str(item_id), json.dumps(json_object))
+
+
+def save_as_poll(item_id, json_object):
+    poll_db.Put(str(item_id), json.dumps(json_object))
 
 
 def parse(json_object):
@@ -44,6 +50,14 @@ def parse(json_object):
 def is_exist(item_id):
     try:
         db.Get(str(item_id))
+        return True
+    except KeyError:
+        return False
+
+
+def is_poll(item_id):
+    try:
+        poll_db.Get(str(item_id))
         return True
     except KeyError:
         return False
@@ -81,13 +95,19 @@ def crawl():
     global total_found
     global stopped
     global URLS
-    while not q.empty():
+    while not True:
         if stopped:
             break
 
-        i = q.get()
+        try:
+            i = q.get_nowait()
+        except Empty:
+            break
+
         if is_exist(i):
             #print 'existed',
+            total_found += 1
+        elif is_poll(i):
             total_found += 1
         elif IGNORE_error and is_error(i):
             #print 'was error',
@@ -98,12 +118,18 @@ def crawl():
             try:
                 raw_json = urlopen(url).read()
                 json_object = json.loads(raw_json)
-                item_cnt = parse(json_object)
-                with lock:
-                    print 'item', i,
-                    print '%3d' % item_cnt, 'found',
-                    total_found += item_cnt
-                    print 'total found:', total_found
+                if json_object['type'] in ('poll', 'pollopt'):
+                    save_as_poll(i, json_object)
+                    with lock:
+                        print 'item', i, 'is poll'
+                        total_found += 1
+                else:
+                    item_cnt = parse(json_object)
+                    with lock:
+                        print 'item', i,
+                        print '%3d' % item_cnt, 'found',
+                        total_found += item_cnt
+                        print 'total found:', total_found
             except HTTPError as e:
                 if e.code / 100 == 5: # 5xx Server Error
                     log_error(i, e, False)
@@ -116,7 +142,7 @@ def crawl():
 
 
 def main():
-    NUM_OF_THREAD = 9
+    NUM_OF_THREAD = 19
     threads = []
     for i in range(NUM_OF_THREAD):
         thread = Thread(target = crawl)
