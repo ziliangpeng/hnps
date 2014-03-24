@@ -15,6 +15,7 @@ nohup.out
 # leveldb files
 algolia/*
 error_items/*
+polls/*
 
 # Packages
 *.egg
