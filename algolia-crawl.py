@@ -4,6 +4,8 @@ import leveldb
 from threading import Lock, Thread
 from Queue import Queue, Empty
 import random
+import algolia_io
+import sys
 
 
 URL_PATTERN1 = 'http://proxy-lord.appspot.com/?item=%d'
@@ -11,21 +13,10 @@ URL_PATTERN2 = 'http://hnps-ips.appspot.com/?item=%d'
 
 URLS = [URL_PATTERN1, URL_PATTERN2]
 
-
-db = leveldb.LevelDB('./algolia')
-error_items = leveldb.LevelDB('./error_items')
-poll_db = leveldb.LevelDB('./polls')
-
 IGNORE_error = True
 lock = Lock()
 
-
-def save(item_id, json_object):
-    db.Put(str(item_id), json.dumps(json_object))
-
-
-def save_as_poll(item_id, json_object):
-    poll_db.Put(str(item_id), json.dumps(json_object))
+engine = algolia_io.LevelDBStorage()
 
 
 def parse(json_object):
@@ -43,35 +34,10 @@ def parse(json_object):
 
     if len(json_object['children']) > 0 and type(json_object['children'][0]) not in (int, long):
         transform_obj(json_object)
-    save(item_id, json_object)
+    engine.add_post(str(item_id), json_object)
     return obj_cnt
 
 
-def is_exist(item_id):
-    try:
-        db.Get(str(item_id))
-        return True
-    except KeyError:
-        return False
-
-
-def is_poll(item_id):
-    try:
-        poll_db.Get(str(item_id))
-        return True
-    except KeyError:
-        return False
-
-
-def is_error(item_id):
-    try:
-        error_items.Get(str(item_id))
-        return True
-    except KeyError:
-        return False
-
-
-import sys
 q = Queue()
 START = int(sys.argv[1]) #3000000 - 10
 COUNT = int(sys.argv[2]) #2000000
@@ -85,7 +51,7 @@ stopped = False
 
 def log_error(key, value, save_to_db):
     if save_to_db:
-        error_items.Put(str(key), str(value))
+        engine.add_error(str(key), str(value))
     with lock:
         print 'item', key,
         print str(value)
@@ -95,21 +61,20 @@ def crawl():
     global total_found
     global stopped
     global URLS
-    while not True:
+    while True:
         if stopped:
             break
-
         try:
             i = q.get_nowait()
         except Empty:
             break
 
-        if is_exist(i):
+        if engine.is_post(str(i)):
             #print 'existed',
             total_found += 1
-        elif is_poll(i):
+        elif engine.is_poll(str(i)):
             total_found += 1
-        elif IGNORE_error and is_error(i):
+        elif IGNORE_error and engine.is_error(str(i)):
             #print 'was error',
             pass
         else:
@@ -119,7 +84,7 @@ def crawl():
                 raw_json = urlopen(url).read()
                 json_object = json.loads(raw_json)
                 if json_object['type'] in ('poll', 'pollopt'):
-                    save_as_poll(i, json_object)
+                    engine.add_poll(str(i), json_object)
                     with lock:
                         print 'item', i, 'is poll'
                         total_found += 1
@@ -142,7 +107,7 @@ def crawl():
 
 
 def main():
-    NUM_OF_THREAD = 19
+    NUM_OF_THREAD = 9
     threads = []
     for i in range(NUM_OF_THREAD):
         thread = Thread(target = crawl)
